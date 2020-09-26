@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WikiPath</title>
+   <style>
+        body {
+            font-family: Verdana, Helvetica, sans-serif;
+            background-color: #121212;
+            font-size: large;
+            color: white;
+            text-align:center;
+        }
+
+        div.header {
+            color: white;
+            font-size: large;
+            text-align: center;
+        }
+        input[type=text] {
+            padding: 5px 5px;
+            margin: 8px 0;
+            border: 1px solid grey;
+            font-size: large;
+        }
+        input[type=button] {
+            background-color: lightgrey;
+            padding: 5px 5px;
+            margin: 8px 0px;
+            border: 1px solid grey;
+            font-size: large;
+        }
+        div.result {
+            border: 2px solid grey;
+            background-color: white;
+            display: inline-block;
+            color: black;
+            font-size: large;
+            padding: 12px 20px;
+        }
+        div.load {
+            border-radius: 0%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: auto;
+            background-color: #f3f3f3;
+        }
+        
+        @keyframes spin {
+        0% { transform: rotate3d(0,0,0,0deg); background: white}
+        50% { background: black}
+        100% { transform: rotate3d(.5,1,1,360deg); background: white}
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+        <div class="header" >
+            Welcome to WikiPath, by Steven Appler. Enter two things: <br>
+            I will display the shortest route between their Wikipedia pages<br>
+            Spelling and capitalization are important for titles and names (e.g. "Spider man" is not the same as "Spider-Man"). <br>
+            If all else fails, try copying the page name from the page's URL.<br>
+        </div>
+        <br>
+        <div style="text-align:center;padding:30px;">
+            <form>
+                <div style="">
+                    <label for="start">Starting page:</label><br>
+                    <input type="text" id="start" name="start" value="Aphex Twin">
+                </div>
+                <div style="">
+                    <label for="end">Ending page:</label><br>
+                    <input type="text" id="end" name="end" value="Shrek">
+                </div>
+                <br>
+                
+            </form>
+        </div>
+        <div style="text-align:center;">
+            <input type="button" id="submit" value="Find a Path">
+        </div>
+        <br>
+        <br>
+        <br>
+        <div class="load"></div>
+        <div class="result"></div>
+        <script>
+            $(document).ready(function() {
+                $('.result').hide()
+                $('.load').hide()
+                $("#submit").click(function(){
+                    $('.result').hide()
+                    $('.load').show()
+                    var s = $('#start').val()
+                    var e = $('#end').val()
+                    $.ajax({
+                        url: "/findpath",
+                        type: "get",
+                        data: {start: s, end: e},
+                        success: function(response) {
+                            $(".result").html(response);
+                            $('.load').hide()
+                            $('.result').show()
+                        },
+                        error: function(xhr){
+                            //smthn
+                        }
+                    });
+                });
+            });
+        </script>
+  </body>
+</html>

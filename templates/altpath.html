@@ -1,0 +1,12 @@
+<label id="path_result_template">
+    {% if prin == 1 %}
+            {%for i in range(0, len)%} 
+                <a href="https://en.wikipedia.org/wiki/{{pages[i]}}">{{pages[i]}}</a>
+                {% if i != len - 1%}
+                    -->
+                {%endif%}
+            {%endfor%} 
+            {%else%}
+                Sorry, One or more of the pages you input did not exist or were impossible to navigate to.
+    {%endif%}
+</label>
