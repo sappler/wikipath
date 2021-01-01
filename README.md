@@ -1,8 +1,6 @@
 # wikipath
 https://wikirace-288103.wl.r.appspot.com/
 
-A website I came up with after watching Wikipedia speed runs
-
 The website uses a Bi-Directional BFS to find the shortest path between two Wikipedia pages.
 The starting "node" is the starting page, which performs a BFS on all of the links on the article.
 The ending "node" is the ending page, which performs a BFS on all of the pages found on its "what links here" page.
