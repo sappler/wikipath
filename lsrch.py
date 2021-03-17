@@ -5,34 +5,6 @@ from selectolax.parser import HTMLParser
 from collections import defaultdict
 
 
-def main(star, en):
-    start = star.replace(" ", "_")
-    end = en.replace(" ", "_")
-    if start == end:
-        print("You input the same page twice :(")
-        return [start]
-    if verify_search(start, end) is False: # check if either article is nonexistent
-        print("Articles are unsearchable")  
-        return "Sorry, One or more of the pages you input did not exist or were impossible to navigate to."
-    table = defaultdict(str)
-    table[start] = '<None>'  # dictionary of links that point to their parent article
-    table[end] = '<None>'  # dictionary of links that point to their parent article
-    path1 = []
-    path2 = []
-    lock = Lock()
-    s = Thread(group=None, target=search, args=(lock, table, start, path1))
-    e = Thread(group=None, target=reversesearch, args=(lock, table, end, path2))
-    s.start()
-    e.start()
-    s.join()
-    e.join()
-    if len(path1) <= len(path2):
-        print(path1)
-        return path1
-    else:
-        print(path2)
-        return path2
-
 #returns a HTTP parseable text stream 
 def gettext(url):
     with requests.Session() as session:
@@ -63,7 +35,7 @@ def search(lock, table, start, path1):
         if html is None:
             continue
         parsed = HTMLParser(html)
-        div = parsed.css_first('div.mw-parser-output') 
+        div = parsed.css_first('div.mw-parser-output') #main article text
         if div is None:
             continue
         for tag in div.css('a'): #for all links in the article:
@@ -99,15 +71,14 @@ def search(lock, table, start, path1):
             return path1
     return None
 
-#Performs BFS from the end article
+#Performs BFS from the end article. This takes advantage of Wikipedia's "What Links Here" page 
 def reversesearch(lock, table, start, path2):
     minlen = 100000
     queue = [start]
     seen = defaultdict(bool)
     seen[start] = True
+    
     while queue:
-
-
         node = queue.pop(0)
         html = gettext(
             "https://en.wikipedia.org/w/index.php?title=Special:WhatLinksHere/" + node + "&namespace=0&limit=5000&hideredirs=1&hidetrans=1")
@@ -117,7 +88,8 @@ def reversesearch(lock, table, start, path2):
         div = parsed.css_first('[id=mw-whatlinkshere-list]')
         if div is None:
             continue
-        for tag in div.css('li'): #for all links pointing to the article
+        #takes all links pointing to the article and adds them to the queue
+        for tag in div.css('li'): 
             att = tag.css_first('a').attrs
             try:
                 href = str(att['href'])
@@ -148,6 +120,36 @@ def reversesearch(lock, table, start, path2):
             return path2
     return None
 
+#takes start and end page, returns list of articles that connect the two
+def main(star, en):
+    start = star.replace(" ", "_")
+    end = en.replace(" ", "_")
+    if start == end:
+        print("You input the same page twice :(")
+        return [start]
+    if verify_search(start, end) is False: # check if either article is nonexistent
+        print("Articles are unsearchable")  
+        return "Sorry, One or more of the pages you input did not exist or were impossible to navigate to."
+        
+    #3 tables: master table for all seen pages, and one for each thread to avoid cycles
+    table = defaultdict(str)
+    table[start] = '<None>'  # dictionary of links that point to their parent article
+    table[end] = '<None>'  # dictionary of links that point to their parent article
+    path1 = []
+    path2 = []
+    lock = Lock()
+    s = Thread(group=None, target=search, args=(lock, table, start, path1))
+    e = Thread(group=None, target=reversesearch, args=(lock, table, end, path2))
+    s.start()
+    e.start()
+    s.join()
+    e.join()
+    if len(path1) <= len(path2):
+        print(path1)
+        return path1
+    else:
+        print(path2)
+        return path2
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2])
